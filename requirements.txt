@@ -1,0 +1,3 @@
+crewai[tools]
+steamlit 
+langchain-community
