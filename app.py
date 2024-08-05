@@ -100,7 +100,7 @@ if st.button("Generate Marketing Strategy"):
 
         # Create Crew responsible for Image
         senior_photographer = agents.senior_photographer_agent()
-        chief_creative_diretor = agents.chief_creative_director_agent()
+        chief_creative_diretor = agents.chief_creative_diretor_agent()
 
         # Create Tasks for Image
         take_photo = tasks.take_photograph_task(senior_photographer, ad_copy)
