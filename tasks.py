@@ -51,11 +51,15 @@ class MarketingAnalysisTasks:
             """)
         )
 
-    def campaign_development(self, agent):
+    def campaign_development(self, agent, platform, tone, audience):
         return Task(
             description=dedent(f"""\
                 Develop a targeted marketing campaign for Australia Travel Safe: {PRODUCT_WEBSITE}.
                 Extra details provided by the company: {PRODUCT_DETAILS}.
+
+                Platform: {platform}
+                Tone of Voice: {tone}
+                Target Audience: {audience}
 
                 Create a strategy and creative content ideas
                 meticulously designed to captivate and engage
@@ -74,12 +78,14 @@ class MarketingAnalysisTasks:
             """)
         )
 
-    def instagram_ad_copy(self, agent):
+    def instagram_ad_copy(self, agent, keywords):
         return Task(
             description=dedent(f"""\
                 Craft engaging Instagram post copy for Australia Travel Safe.
                 The copy should be punchy, captivating, concise,
                 and aligned with the marketing strategy.
+
+                Keywords: {keywords}
 
                 Focus on creating a message that resonates with
                 the target audience and highlights the unique
@@ -101,7 +107,7 @@ class MarketingAnalysisTasks:
             """)
         )
 
-    def take_photograph_task(self, agent, copy):
+    def take_photograph_task(self, agent, copy, style):
         return Task(
             description=dedent(f"""\
                 Take the most amazing photo ever for an Instagram post
@@ -110,6 +116,8 @@ class MarketingAnalysisTasks:
 
                 This is the product you are working with: {PRODUCT_WEBSITE}.
                 Extra details provided by the company: {PRODUCT_DETAILS}.
+
+                Image Style: {style}
 
                 Imagine what the photo should look like and describe it in a paragraph.
                 Here are some examples to follow:

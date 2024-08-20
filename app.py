@@ -2,14 +2,16 @@ import streamlit as st
 import os
 import re
 import sys
-import tempfile
+import requests
+from datetime import datetime
+from dotenv import load_dotenv, set_key
 from crewai import Crew, Process
 from agents import MarketingAnalysisAgents
 from tasks import MarketingAnalysisTasks
-from dotenv import load_dotenv, set_key
 from langchain_openai import ChatOpenAI
-from datetime import datetime
-import requests
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
 
 # Load environment variables
 load_dotenv()
@@ -57,6 +59,14 @@ if serper_api_key:
     os.environ["SERPER_API_KEY"] = serper_api_key
     set_key('.env', 'SERPER_API_KEY', serper_api_key)
 
+# Sidebar options for customization
+st.sidebar.title("Customization Options")
+target_audience = st.sidebar.selectbox("Target Audience", ["None", "Teens", "Adults", "Professionals"])
+platform = st.sidebar.selectbox("Platform", ["None", "Instagram", "Facebook", "Twitter", "LinkedIn"])
+tone_of_voice = st.sidebar.selectbox("Tone of Voice", ["None", "Formal", "Casual", "Humorous", "Inspirational"])
+keywords = st.sidebar.text_input("Keywords (comma separated)")
+image_style = st.sidebar.selectbox("Image Style", ["None", "Minimalist", "Vintage", "Modern", "Artistic"])
+
 # Initialize OpenAI client
 openai_client = ChatOpenAI(api_key=openai_api_key)
 
@@ -64,7 +74,7 @@ openai_client = ChatOpenAI(api_key=openai_api_key)
 tasks = MarketingAnalysisTasks()
 agents = MarketingAnalysisAgents()
 
-if st.button("Generate Marketing Strategy"):
+def generate_content():
     expander = st.expander("Crew Log")
     sys.stdout = StreamToExpander(expander)
 
@@ -73,12 +83,19 @@ if st.button("Generate Marketing Strategy"):
         product_competitor_agent = agents.product_competitor_agent()
         strategy_planner_agent = agents.strategy_planner_agent()
         creative_agent = agents.creative_content_creator_agent()
+        senior_photographer = agents.senior_photographer_agent()
+        chief_creative_director = agents.chief_creative_director_agent()
 
-        # Create Tasks
+        # Initialize Tasks
         website_analysis = tasks.product_analysis(product_competitor_agent)
         market_analysis = tasks.competitor_analysis(product_competitor_agent)
-        campaign_development = tasks.campaign_development(strategy_planner_agent)
-        write_copy = tasks.instagram_ad_copy(creative_agent)
+
+        # Generate marketing campaign and ad copy if options are selected
+        campaign_development = None
+        write_copy = None
+        if platform != "None" and tone_of_voice != "None" and target_audience != "None":
+            campaign_development = tasks.campaign_development(strategy_planner_agent, platform=platform, tone=tone_of_voice, audience=target_audience)
+            write_copy = tasks.instagram_ad_copy(creative_agent, keywords=keywords)
 
         # Create Crew responsible for Copy
         copy_crew = Crew(
@@ -92,74 +109,65 @@ if st.button("Generate Marketing Strategy"):
                 market_analysis,
                 campaign_development,
                 write_copy
-            ],
-            verbose=True
+            ] if campaign_development and write_copy else [website_analysis, market_analysis]
         )
 
-        ad_copy = copy_crew.kickoff()
-
-        # Create Crew responsible for Image
-        senior_photographer = agents.senior_photographer_agent()
-        chief_creative_diretor = agents.chief_creative_diretor_agent()
+        ad_copy = copy_crew.kickoff() if campaign_development and write_copy else None
 
         # Create Tasks for Image
-        take_photo = tasks.take_photograph_task(senior_photographer, ad_copy)
-        approve_photo = tasks.review_photo(chief_creative_diretor)
+        image_description = None
+        if image_style != "None" and ad_copy:
+            take_photo = tasks.take_photograph_task(senior_photographer, ad_copy, style=image_style)
+            approve_photo = tasks.review_photo(chief_creative_director)
+            image_crew = Crew(
+                agents=[
+                    senior_photographer,
+                    chief_creative_director
+                ],
+                tasks=[
+                    take_photo,
+                    approve_photo
+                ]
+            )
+            image_description = image_crew.kickoff()
 
-        image_crew = Crew(
-            agents=[
-                senior_photographer,
-                chief_creative_diretor
-            ],
-            tasks=[
-                take_photo,
-                approve_photo
-            ],
-            verbose=True
-        )
+        # Generate and Display Image using DALL-E
+        def generate_image(description):
+            if description:
+                prompt_template = PromptTemplate(
+                    input_variables=["image_desc"],
+                    template="Generate an image based on the following description: {image_desc}"
+                )
+                prompt = prompt_template.format(image_desc=description)
+                chain = LLMChain(llm=openai_client, prompt=prompt_template)
+                image_url = DallEAPIWrapper().run(chain.run(prompt))
+                return image_url
+            return None
 
-        image = image_crew.kickoff()
+        image_url = generate_image(image_description) if image_description else None
 
         # Display Results
         st.markdown("## Here is the result")
-        st.markdown("### Your post copy:")
-        st.write(ad_copy)
+        if ad_copy:
+            st.markdown("### Your post copy:")
+            st.write(ad_copy)
 
-        st.markdown("### Your DALL-E 3 description:")
-        st.write(image)
+        if image_url:
+            st.markdown("### Your Generated Image:")
+            st.image(image_url, caption="Generated Image", use_column_width=True)
 
-        # Generate and Display Image using OpenAI DALL-E 3
-        def generate_image(prompt):
-            response = openai_client.images.generate(
-                model="dall-e-3",
-                prompt=prompt,
-                size="1024x1024",
-                quality="standard",
-                n=1
-            )
-            image_url = response.data[0].url
-
-            # Download image
-            image_data = requests.get(image_url).content
-            image_filename = f"generated_image_{datetime.today().strftime('%Y-%m-%d_%H-%M-%S')}.png"
-            with open(image_filename, "wb") as img_file:
-                img_file.write(image_data)
-
-            return image_filename, image_url
-
-        image_filename, image_url = generate_image(image)
-        st.image(image_url, caption="Generated Image", use_column_width=True)
-
-        # Save results to a text file
+        # Save results to a text file with utf-8 encoding
         filename = f"generated_content_{datetime.today().strftime('%Y-%m-%d_%H-%M-%S')}.txt"
-        with open(filename, 'w') as f:
-            f.write(f"Generated Image URL: {image_url}\n\n")
-            f.write(f"Instagram Caption:\n{ad_copy}\n\n")
+        with open(filename, 'w', encoding='utf-8') as f:
+            if ad_copy:
+                f.write(f"Instagram Caption:\n{ad_copy}\n\n")
+            if image_url:
+                f.write(f"Generated Image URL: {image_url}\n")
 
         # Download link for the text file
         with open(filename, "rb") as f:
             st.download_button(
-                label="Download Captions",
+                label="Download Captions and Image Info",
                 data=f,
                 file_name=filename,
                 mime="text/plain"
@@ -168,3 +176,6 @@ if st.button("Generate Marketing Strategy"):
         st.error(f"An error occurred: {e}")
     finally:
         sys.stdout = sys.__stdout__
+
+if st.button("Generate Marketing Strategy"):
+    generate_content()

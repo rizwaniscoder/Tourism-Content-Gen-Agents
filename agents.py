@@ -5,13 +5,11 @@ from langchain_openai import ChatOpenAI
 
 from crewai_tools import SerperDevTool, ScrapeWebsiteTool
 
-
 class MarketingAnalysisAgents:
     def __init__(self):
         self.llm = ChatOpenAI(model_name="gpt-4o-mini")
         self.serper_dev_tool = SerperDevTool()
         self.scrape_website_tool = ScrapeWebsiteTool()
-
 
     def product_competitor_agent(self):
         return Agent(
@@ -25,8 +23,8 @@ class MarketingAnalysisAgents:
                 digital marketing firm, you specialize in dissecting
                 online business landscapes."""),
             tools=[
-                    self.serper_dev_tool,
-                    self.scrape_website_tool
+                self.serper_dev_tool,
+                self.scrape_website_tool
             ],
             allow_delegation=False,
             llm=self.llm,
@@ -44,8 +42,8 @@ class MarketingAnalysisAgents:
                 a leading digital marketing agency, known for crafting
                 bespoke strategies that drive success."""),
             tools=[
-                    self.serper_dev_tool,
-                    self.scrape_website_tool
+                self.serper_dev_tool,
+                self.scrape_website_tool
             ],
             llm=self.llm,
             verbose=True
@@ -66,8 +64,8 @@ class MarketingAnalysisAgents:
                 into engaging stories and visual content that capture
                 attention and inspire action."""),
             tools=[
-                    self.serper_dev_tool,
-                    self.scrape_website_tool
+                self.serper_dev_tool,
+                self.scrape_website_tool
             ],
             llm=self.llm,
             verbose=True
@@ -75,41 +73,41 @@ class MarketingAnalysisAgents:
 
     def senior_photographer_agent(self):
         return Agent(
-                role="Senior Photographer",
-                goal=dedent("""\
-                    Take the most amazing photographs for Instagram ads that
-                    capture emotions and convey a compelling message."""),
-                backstory=dedent("""\
-                    As a Senior Photographer at a leading digital marketing
-                    agency, you are an expert at taking amazing photographs that
-                    inspire and engage, you're now working on a new campaign for a super
-                    important customer and you need to take the most amazing photograph."""),
-                tools=[
-                    self.serper_dev_tool,
-                    self.scrape_website_tool
-                ],
-                llm=self.llm,
-                allow_delegation=False,
-                verbose=True
+            role="Senior Photographer",
+            goal=dedent("""\
+                Take the most amazing photographs for Instagram ads that
+                capture emotions and convey a compelling message."""),
+            backstory=dedent("""\
+                As a Senior Photographer at a leading digital marketing
+                agency, you are an expert at taking amazing photographs that
+                inspire and engage, you're now working on a new campaign for a super
+                important customer and you need to take the most amazing photograph."""),
+            tools=[
+                self.serper_dev_tool,
+                self.scrape_website_tool
+            ],
+            llm=self.llm,
+            allow_delegation=False,
+            verbose=True
         )
 
-    def chief_creative_diretor_agent(self):
+    def chief_creative_director_agent(self):
         return Agent(
-                role="Chief Creative Director",
-                goal=dedent("""\
-                    Oversee the work done by your team to make sure it's the best
-                    possible and aligned with the product's goals, review, approve,
-                    ask clarifying question or delegate follow up work if necessary to make
-                    decisions"""),
-                backstory=dedent("""\
-                    You're the Chief Content Officer of leading digital
-                    marketing specialized in product branding. You're working on a new
-                    customer, trying to make sure your team is crafting the best possible
-                    content for the customer."""),
-                tools=[
-                    self.serper_dev_tool,
-                    self.scrape_website_tool
-                ],
-                llm=self.llm,
-                verbose=True
+            role="Chief Creative Director",
+            goal=dedent("""\
+                Oversee the work done by your team to make sure it's the best
+                possible and aligned with the product's goals, review, approve,
+                ask clarifying questions or delegate follow-up work if necessary to make
+                decisions"""),
+            backstory=dedent("""\
+                You're the Chief Content Officer of a leading digital
+                marketing agency specializing in product branding. You're working on a new
+                customer, trying to make sure your team is crafting the best possible
+                content for the customer."""),
+            tools=[
+                self.serper_dev_tool,
+                self.scrape_website_tool
+            ],
+            llm=self.llm,
+            verbose=True
         )
