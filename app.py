@@ -87,7 +87,8 @@ try:
     tasks = MarketingAnalysisTasks()
     agents = MarketingAnalysisAgents()
 except Exception as e:
-    st.error(f"Failed to initialize tasks and agents: {e}")
+    # st.error(f"Failed to initialize tasks and agents: {e}")
+    pass
 
 def generate_content():
     expander = st.expander("Crew Log")
