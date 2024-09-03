@@ -2,7 +2,6 @@ import streamlit as st
 import os
 import re
 import sys
-import requests
 from datetime import datetime
 from dotenv import load_dotenv, set_key
 from crewai import Crew, Process
