@@ -1,7 +1,7 @@
 from crewai import Task
 from textwrap import dedent
 
-PRODUCT_WEBSITE = "https://australiatravelsafe.com"
+PRODUCT_WEBSITE = "https://australiatravelsafe.com.au"
 PRODUCT_DETAILS = "Australia Travel Safe offers comprehensive safety information and travel tips for tourists exploring Australia. Our services include up-to-date safety alerts, travel itineraries, and guides to help ensure a safe and enjoyable journey."
 
 class MarketingAnalysisTasks:
